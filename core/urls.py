@@ -8,4 +8,5 @@ urlpatterns = [
     path('acidentes/criar_acidente', views.criar_acidente, name='criar-acidente'),
     path('acidentes/editar/<str:num_boletim>/', views.atualizar_acidente, name='atualizar-acidente'),
     path('acidentes/<str:num_boletim>/', views.obter_acidentes_por_id, name='obter_acidentes_por_id'),
+    path('acidentes/ultimos', views.ultimos_acidentes, name='ultimos-acidentes'),
 ] 

@@ -2,8 +2,10 @@ from django.shortcuts import render
 from .models import Acidente
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from .serializers import AcidenteSerializer
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 @api_view(['GET'])
 def acidentes_as_json(request):
@@ -11,6 +13,18 @@ def acidentes_as_json(request):
     serializer = AcidenteSerializer(acidentes, many=True)
     return Response(serializer.data)
 
+@api_view(['GET'])
+def ultimos_acidentes(request):
+    # Consulta SQL personalizada para obter os 10 registros mais recentes
+    consulta_sql = """
+    SELECT * FROM acidente
+    ORDER BY data_hora_boletim DESC
+    LIMIT 10;
+    """
+
+    ultimos_acidentes = Acidente.objects.raw(consulta_sql)
+    serializer = AcidenteSerializer(ultimos_acidentes, many=True)
+    return Response(serializer.data)
 
 @api_view(['POST'])
 def criar_acidente(request):
@@ -45,6 +59,8 @@ def get_fitro_acidentes_severidade(request):
     return Response(serializer.data)
 
 @api_view(['GET'])
+# @authentication_classes([TokenAuthentication])  # Adicione esta linha
+# @permission_classes([IsAuthenticated])  # Adicione esta linha
 def obter_acidentes_por_id(request, num_boletim):
     try:
         acidentes = Acidente.objects.filter(num_boletim=num_boletim)
@@ -52,3 +68,4 @@ def obter_acidentes_por_id(request, num_boletim):
         return Response(serializer.data)
     except Acidente.DoesNotExist:
         return Response({"error": "Nenhum acidente encontrado para o ID fornecido."}, status=404)
+
