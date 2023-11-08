@@ -18,7 +18,7 @@ def ultimos_acidentes(request):
     # Consulta SQL personalizada para obter os 10 registros mais recentes
     consulta_sql = """
     SELECT * FROM acidente
-    ORDER BY data_hora_boletim DESC
+    ORDER BY num_boletim DESC
     LIMIT 10;
     """
 
@@ -29,10 +29,12 @@ def ultimos_acidentes(request):
 @api_view(['POST'])
 def criar_acidente(request):
     serializer = AcidenteSerializer(data=request.data)
+    print(request.data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({"error": "Erro na validação", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['PUT'])
 def atualizar_acidente(request, pk):
@@ -45,6 +47,7 @@ def atualizar_acidente(request, pk):
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data)
+    print(serializer.erros)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
