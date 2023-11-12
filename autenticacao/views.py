@@ -64,7 +64,7 @@ class LoginView(APIView):
         # Include the user's ID and name in the response
         user_id = user.id
         user_name = user.username
-
+        request.session['user_id'] = user.id
         return Response({
             'user_id': user_id,
             'user_name': user_name,

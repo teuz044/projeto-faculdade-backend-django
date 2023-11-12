@@ -1,9 +1,10 @@
 from django.shortcuts import render
-from .models import Acidente
+from .models import Acidente, Log
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from .serializers import AcidenteSerializer
+from django.utils import timezone
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
@@ -24,6 +25,8 @@ def ultimos_acidentes(request):
 
     ultimos_acidentes = Acidente.objects.raw(consulta_sql)
     serializer = AcidenteSerializer(ultimos_acidentes, many=True)
+    user_id = request.session.get('user_id')
+    Log.objects.create(user_id=user_id, acao='Criar Acidente', descricao=f'Usuário criou um novo acidente: {serializer.data}', timestamp=timezone.now())
     return Response(serializer.data)
 
 @api_view(['POST'])
@@ -32,6 +35,8 @@ def criar_acidente(request):
     print(request.data)
     if serializer.is_valid():
         serializer.save()
+        user_id = request.session.get('user_id')
+        Log.objects.create(user_id=user_id, acao='Criar Acidente', descricao=f'Usuário criou um novo acidente: {serializer.data}', timestamp=timezone.now())
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response({"error": "Erro na validação", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -42,10 +47,15 @@ def atualizar_acidente(request, pk):
         acidente = Acidente.objects.get(pk=pk)
     except Acidente.DoesNotExist:
         return Response({'error': 'Acidente não encontrado'}, status=status.HTTP_404_NOT_FOUND)
-
+    
+    current_num_boletim = acidente.num_boletim
     serializer = AcidenteSerializer(acidente, data=request.data)
     if serializer.is_valid():
         serializer.save()
+        user_id = request.session.get('user_id')
+        updated_num_boletim = serializer.data.get('num_boletim', current_num_boletim)
+        Log.objects.create(user_id=user_id, acao='Usuário atualizou acidente', descricao=f'Usuário atualizou acidente: {updated_num_boletim}', timestamp=timezone.now())
+       
         return Response(serializer.data)
     print(serializer.erros)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
