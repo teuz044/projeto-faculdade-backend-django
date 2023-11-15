@@ -9,4 +9,5 @@ urlpatterns = [
     path('acidentes/editar/<str:num_boletim>/', views.atualizar_acidente, name='atualizar-acidente'),
     path('acidentes/<str:num_boletim>/', views.obter_acidentes_por_id, name='obter_acidentes_por_id'),
     path('acidentes/ultimos', views.ultimos_acidentes, name='ultimos-acidentes'),
+      path('api/getinfocep/<str:cep>/', views.getinfocep, name='get_info_cep'),
 ] 

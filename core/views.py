@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from .serializers import AcidenteSerializer
 from django.utils import timezone
+import requests
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
@@ -81,4 +82,33 @@ def obter_acidentes_por_id(request, num_boletim):
         return Response(serializer.data)
     except Acidente.DoesNotExist:
         return Response({"error": "Nenhum acidente encontrado para o ID fornecido."}, status=404)
+    
+
+@api_view(['GET'])
+def getinfocep(request, cep):
+    # Verifica se o CEP foi fornecido
+    if not cep:
+        return Response({"error": "CEP não fornecido"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Consulta as informações do CEP utilizando a função consultar_cep
+    dados_cep = consultar_cep(cep)
+
+    # Verifica se as informações do CEP foram encontradas
+    if dados_cep:
+        return Response(dados_cep)
+    else:
+        return Response({"error": "Não foi possível obter as informações do CEP"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+def consultar_cep(cep):
+    url = f"https://viacep.com.br/ws/{cep}/json/"
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return None
+    except requests.RequestException as e:
+        print(f"Erro ao consultar o CEP: {e}")
+        return None
 
