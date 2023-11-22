@@ -91,6 +91,14 @@ DATABASES = {
         'PASSWORD': 'admin',
         'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
         'PORT': '3306',
+    },
+    'test': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'test_acidentes',  # Nome do banco de dados de teste
+        'USER': 'root',
+        'PASSWORD': 'admin',
+        'HOST': 'localhost',   # Ou um endereço IP onde seu banco de dados está hospedado
+        'PORT': '3306',
     }
 }
 
