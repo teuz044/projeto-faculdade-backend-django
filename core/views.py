@@ -8,6 +8,22 @@ from django.utils import timezone
 import requests
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+import pickle
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+import pandas as pd
+from rest_framework.views import APIView
+import numpy as np
+
+
 
 @api_view(['GET'])
 def acidentes_as_json(request):
@@ -43,22 +59,27 @@ def criar_acidente(request):
 
 
 @api_view(['PUT'])
-def atualizar_acidente(request, pk):
+def atualizar_acidente(request, num_boletim):
     try:
-        acidente = Acidente.objects.get(pk=pk)
+        acidente = Acidente.objects.get(num_boletim=num_boletim)
     except Acidente.DoesNotExist:
         return Response({'error': 'Acidente não encontrado'}, status=status.HTTP_404_NOT_FOUND)
     
     current_num_boletim = acidente.num_boletim
-    serializer = AcidenteSerializer(acidente, data=request.data)
+    serializer = AcidenteSerializer(acidente, data=request.data)  # Modificação aqui
+    
     if serializer.is_valid():
         serializer.save()
         user_id = request.session.get('user_id')
-        updated_num_boletim = serializer.data.get('num_boletim', current_num_boletim)
-        Log.objects.create(user_id=user_id, acao='Usuário atualizou acidente', descricao=f'Usuário atualizou acidente: {updated_num_boletim}', timestamp=timezone.now())
-       
+        updated_num_boletim = serializer.validated_data.get('num_boletim', current_num_boletim)
+        Log.objects.create(
+            user_id=user_id,
+            acao='Usuário atualizou acidente',
+            descricao=f'Usuário atualizou acidente: {updated_num_boletim}',
+            timestamp=timezone.now()
+        )
         return Response(serializer.data)
-    print(serializer.erros)
+    print(serializer.errors)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
@@ -112,3 +133,12 @@ def consultar_cep(cep):
         print(f"Erro ao consultar o CEP: {e}")
         return None
 
+
+@api_view(['DELETE'])
+def excluir_acidente(request, num_boletim):
+    try:
+        acidente = Acidente.objects.get(num_boletim=num_boletim)
+        acidente.delete()
+        return Response({'message': f'Acidente com num_boletim {num_boletim} foi excluído com sucesso.'}, status=status.HTTP_204_NO_CONTENT)
+    except Acidente.DoesNotExist:
+        return Response({'error': 'Acidente não encontrado'}, status=status.HTTP_404_NOT_FOUND)

@@ -8,7 +8,7 @@ class Pessoa(models.Model):
         return self.nome
 
 class Acidente(models.Model):
-    num_boletim = models.CharField(max_length=255, unique=True, db_column='num_boletim', primary_key=True)
+    num_boletim = models.CharField(max_length=255, db_column='num_boletim', primary_key=True)
     data_hora_boletim = models.CharField(max_length=255, db_column='data_hora_boletim')
     Nº_envolvido = models.IntegerField(db_column='Nº_envolvido')
     condutor = models.CharField(max_length=255, db_column='condutor')
